@@ -1,10 +1,31 @@
 #!/usr/bin/env bash
 # metabot - MetaBot management CLI
 # Usage: metabot update | start | stop | restart | logs | status
+#
+# METABOT_HOME — clone root (default: $HOME/metabot). Used by update and default ecosystem path.
+# METABOT_ECOSYSTEM — explicit path to ecosystem.config.cjs (overrides METABOT_HOME-based path).
 
 set -euo pipefail
 
 METABOT_HOME="${METABOT_HOME:-$HOME/metabot}"
+
+# Resolve PM2 ecosystem file: explicit env > METABOT_HOME > cwd (when default missing)
+metabot_ecosystem_path() {
+  if [[ -n "${METABOT_ECOSYSTEM:-}" ]]; then
+    printf '%s\n' "$METABOT_ECOSYSTEM"
+    return
+  fi
+  local def="$METABOT_HOME/ecosystem.config.cjs"
+  if [[ -f "$def" ]]; then
+    printf '%s\n' "$def"
+    return
+  fi
+  if [[ -f "${PWD}/ecosystem.config.cjs" ]]; then
+    printf '%s\n' "${PWD}/ecosystem.config.cjs"
+    return
+  fi
+  printf '%s\n' "$def"
+}
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -134,13 +155,23 @@ cmd_update() {
   fi
 
   info "Restarting MetaBot..."
-  pm2 restart metabot 2>/dev/null || pm2 start ecosystem.config.cjs
+  pm2 restart metabot 2>/dev/null || pm2 start "$(metabot_ecosystem_path)"
   pm2 save --force 2>/dev/null || true
 
   success "MetaBot updated and restarted!"
 }
 
-cmd_start()   { pm2 start "$METABOT_HOME/ecosystem.config.cjs"; pm2 save --force 2>/dev/null || true; }
+cmd_start() {
+  local eco
+  eco="$(metabot_ecosystem_path)"
+  if [[ ! -f "$eco" ]]; then
+    error "ecosystem config not found: $eco"
+    echo "  Set METABOT_HOME to your MetaBot repo, or METABOT_ECOSYSTEM to the config file path."
+    exit 1
+  fi
+  pm2 start "$eco"
+  pm2 save --force 2>/dev/null || true
+}
 cmd_stop()    { pm2 stop metabot; }
 cmd_restart() { pm2 restart metabot; }
 cmd_logs()    { pm2 logs metabot "${@}"; }
@@ -162,5 +193,8 @@ case "${1:-help}" in
     echo "  metabot restart    Restart MetaBot"
     echo "  metabot logs       View live logs (pass -n 100 etc.)"
     echo "  metabot status     Show PM2 process status"
+    echo ""
+    echo "  METABOT_HOME=$HOME/metabot (override if your clone lives elsewhere)"
+    echo "  METABOT_ECOSYSTEM=   (optional full path to ecosystem.config.cjs)"
     ;;
 esac

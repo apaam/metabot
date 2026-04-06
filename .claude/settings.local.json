@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pm2 start:*)",
+      "Bash(pm2 logs:*)",
+      "Bash(pm2 status:*)",
+      "Bash(pm2 delete:*)",
+      "Bash(npm install:*)",
+      "Bash(pm2 restart:*)"
+    ]
+  }
+}

@@ -27,6 +27,7 @@ module.exports = {
       env: {
         NODE_ENV: 'production',
         CLAUDE_MAX_TURNS: '',  // unlimited turns (override any inherited shell env)
+        BOTS_CONFIG: './bots.json',
       },
     },
   ],
