@@ -1,0 +1,135 @@
+#compdef mb
+
+# mb - MetaBot API CLI completion
+
+_mb() {
+    local curcontext="$curcontext" state line
+    typeset -A opt_args
+
+    _arguments -C \
+        '1: :_mb_commands' \
+        '*:: :->args'
+
+    case "$line[1]" in
+        schedule|sched|sc)
+            _mb_schedule
+            ;;
+        voice|v)
+            _mb_voice
+            ;;
+        talk|t)
+            _mb_talk
+            ;;
+        bot)
+            _arguments '1: :_mb_bots'
+            ;;
+        task)
+            _arguments '1: :_mb_bots'
+            ;;
+    esac
+}
+
+_mb_commands() {
+    local commands=(
+        'bots:List all bots'
+        'bot:Get bot details'
+        'talk:Talk to a bot'
+        'task:Delegate task to bot (deprecated)'
+        'schedule:Task scheduling'
+        'voice:Voice tools'
+        'peers:List peers'
+        'stats:Cost & usage stats'
+        'metrics:Prometheus metrics'
+        'health:Health check'
+        'update:Pull latest & rebuild'
+    )
+    _describe -t commands 'mb commands' commands
+}
+
+_mb_schedule_commands() {
+    local commands=(
+        'list:List all scheduled tasks'
+        'add:Schedule a one-time task'
+        'cron:Schedule a recurring task'
+        'pause:Pause a recurring task'
+        'resume:Resume a paused task'
+        'cancel:Cancel a scheduled task'
+    )
+    _describe -t commands 'schedule commands' commands
+}
+
+_mb_schedule() {
+    local curcontext="$curcontext" state line
+    typeset -A opt_args
+
+    _arguments -C \
+        '1: :_mb_schedule_commands' \
+        '*:: :->args'
+
+    case "$line[1]" in
+        add)
+            _arguments '1: :_mb_bots' '2:chat id:' '3:delay seconds:' '*:prompt:'
+            ;;
+        cron)
+            _arguments '1: :_mb_bots' '2:chat id:' '3:cron expression:' '*:prompt:'
+            ;;
+        pause|resume|cancel|rm)
+            _arguments '1:task id:'
+            ;;
+    esac
+}
+
+_mb_voice_commands() {
+    local commands=(
+        'call:Start voice call'
+        'transcript:Get call transcript'
+        'list:List active voice sessions'
+        'config:Check RTC configuration'
+        'tts:Text-to-speech'
+    )
+    _describe -t commands 'voice commands' commands
+}
+
+_mb_voice() {
+    local curcontext="$curcontext" state line
+    typeset -A opt_args
+
+    _arguments -C \
+        '1: :_mb_voice_commands' \
+        '*:: :->args'
+
+    case "$line[1]" in
+        call|c)
+            _arguments \
+                '1: :_mb_bots' \
+                '2:chat id:' \
+                '*:prompt:' \
+                '-w[Welcome message]:message:' \
+                '--welcome[Welcome message]:message:'
+            ;;
+        transcript|t)
+            _arguments '1:session id:'
+            ;;
+        tts)
+            _arguments \
+                '--provider[TTS provider]:provider:(doubao openai elevenlabs)' \
+                '-p[TTS provider]:provider:(doubao openai elevenlabs)' \
+                '--voice[Voice name]:voice:' \
+                '-o[Output file]:output file:_files' \
+                '--output[Output file]:output file:_files' \
+                '--play[Play audio]' \
+                '*:text:'
+            ;;
+    esac
+}
+
+_mb_talk() {
+    _arguments '1:bot name:' '2:chat id:' '*:prompt:'
+}
+
+_mb_bots() {
+    # Could be enhanced to fetch from API if available
+    _files
+}
+
+compdef _mb mb

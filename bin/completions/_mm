@@ -1,0 +1,58 @@
+#compdef mm
+
+# mm - MetaMemory CLI completion
+
+_mm() {
+    local curcontext="$curcontext" state line
+    typeset -A opt_args
+
+    _arguments -C \
+        '1: :_mm_commands' \
+        '*:: :->args'
+
+    case "$line[1]" in
+        create|c|update|u)
+            _mm_write
+            ;;
+    esac
+}
+
+_mm_commands() {
+    local commands=(
+        'search:Search documents'
+        's:Search documents'
+        'get:Get document by ID'
+        'g:Get document by ID'
+        'path:Get document by path'
+        'p:Get document by path'
+        'list:List documents'
+        'ls:List documents'
+        'folders:List folder tree'
+        'f:List folder tree'
+        'create:Create document'
+        'c:Create document'
+        'update:Update document'
+        'u:Update document'
+        'mkdir:Create folder'
+        'md:Create folder'
+        'delete:Delete document'
+        'rm:Delete document'
+        'health:Health check'
+        'h:Health check'
+    )
+    _describe -t commands 'mm commands' commands
+}
+
+_mm_write() {
+    _arguments \
+        '--folder[Folder ID]:folder id:' \
+        '-f[Folder ID]:folder id:' \
+        '--tags[Comma-separated tags]:tags:' \
+        '-t[Comma-separated tags]:tags:' \
+        '--by[Creator name]:name:' \
+        '-b[Creator name]:name:' \
+        '--title[New title]:title:' \
+        '-T[New title]:title:'
+}
+
+compdef _mm mm

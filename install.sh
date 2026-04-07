@@ -925,6 +925,55 @@ if ! echo "$PATH" | grep -q "$LOCAL_BIN"; then
 fi
 success "mm/mb/metabot CLI tools installed to $LOCAL_BIN"
 
+# Install shell completions
+COMPLETIONS_DIR="$METABOT_HOME/bin/completions"
+if [[ -d "$COMPLETIONS_DIR" ]]; then
+  info "Installing shell completions..."
+
+  # Bash completions
+  BASH_COMPLETIONS="$HOME/.local/share/bash-completion/completions"
+  mkdir -p "$BASH_COMPLETIONS"
+  for comp in mb mm metabot doubao-tts; do
+    if [[ -f "$COMPLETIONS_DIR/${comp}.bash" ]]; then
+      cp "$COMPLETIONS_DIR/${comp}.bash" "$BASH_COMPLETIONS/${comp}"
+      success "Bash completion for $comp installed"
+    fi
+  done
+
+  # Zsh completions
+  ZSH_COMPLETIONS="$HOME/.zsh/completions"
+  mkdir -p "$ZSH_COMPLETIONS"
+  for comp in _mb _mm _metabot _doubao-tts; do
+    if [[ -f "$COMPLETIONS_DIR/${comp}" ]]; then
+      cp "$COMPLETIONS_DIR/${comp}" "$ZSH_COMPLETIONS/${comp}"
+      success "Zsh completion for ${comp#_} installed"
+    fi
+  done
+
+  # Add completion dirs to shell configs if needed
+  if [[ -f "$HOME/.bashrc" ]] && ! grep -q 'bash-completion/completions' "$HOME/.bashrc"; then
+    if [[ -d "/usr/share/bash-completion" ]] || [[ -d "/etc/bash_completion.d" ]]; then
+      echo '' >> "$HOME/.bashrc"
+      echo '# Enable bash completions for locally installed tools' >> "$HOME/.bashrc"
+      echo 'if [ -d ~/.local/share/bash-completion/completions ]; then' >> "$HOME/.bashrc"
+      echo '    for f in ~/.local/share/bash-completion/completions/*; do' >> "$HOME/.bashrc"
+      echo '        [ -f "$f" ] && source "$f"' >> "$HOME/.bashrc"
+      echo '    done' >> "$HOME/.bashrc"
+      echo 'fi' >> "$HOME/.bashrc"
+      info "Added bash completion loader to ~/.bashrc"
+    fi
+  fi
+
+  if [[ -f "$HOME/.zshrc" ]]; then
+    if ! grep -q 'fpath.*zsh/completions' "$HOME/.zshrc"; then
+      sed_i '/^source/i \
+# Add custom completions\
+fpath+=(~/.zsh/completions)' "$HOME/.zshrc"
+      info "Added zsh completion path to ~/.zshrc"
+    fi
+  fi
+fi
+
 # ============================================================================
 # Phase 8: Build + Start MetaBot with PM2
 # ============================================================================

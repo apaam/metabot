@@ -83,6 +83,29 @@ cmd_update() {
     success "CLI tools updated"
   fi
 
+  # Update shell completions
+  if [[ -d "$METABOT_HOME/bin/completions" ]]; then
+    info "Updating shell completions..."
+    # Bash completions
+    BASH_COMPLETIONS="$HOME/.local/share/bash-completion/completions"
+    mkdir -p "$BASH_COMPLETIONS"
+    for f in "$METABOT_HOME/bin/completions"/*.bash; do
+      if [[ -f "$f" ]]; then
+        name=$(basename "$f" .bash)
+        cp "$f" "$BASH_COMPLETIONS/$name"
+      fi
+    done
+    # Zsh completions
+    ZSH_COMPLETIONS="$HOME/.zsh/completions"
+    mkdir -p "$ZSH_COMPLETIONS"
+    for f in "$METABOT_HOME/bin/completions"/_*; do
+      if [[ -f "$f" ]]; then
+        cp "$f" "$ZSH_COMPLETIONS/"
+      fi
+    done
+    success "Shell completions updated"
+  fi
+
   # Update skills in ~/.claude/skills
   SKILLS_DIR="$HOME/.claude/skills"
   mkdir -p "$SKILLS_DIR"

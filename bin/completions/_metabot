@@ -1,0 +1,30 @@
+#compdef metabot
+
+# metabot - MetaBot management CLI completion
+
+_metabot() {
+    local curcontext="$curcontext" state line
+    typeset -A opt_args
+
+    _arguments -C \
+        '1: :_metabot_commands' \
+        '*:: :->args'
+}
+
+_metabot_commands() {
+    local commands=(
+        'update:Pull latest, rebuild, and restart'
+        'up:Pull latest, rebuild, and restart'
+        'start:Start MetaBot with PM2'
+        'stop:Stop MetaBot'
+        'restart:Restart MetaBot'
+        'rs:Restart MetaBot'
+        'logs:View live logs'
+        'log:View live logs'
+        'status:Show PM2 process status'
+        'st:Show PM2 process status'
+    )
+    _describe -t commands 'metabot commands' commands
+}
+
+compdef _metabot metabot
