@@ -10,7 +10,10 @@
       "Bash(git remote:*)",
       "Bash(git fetch:*)",
       "Bash(git merge:*)",
-      "Bash(bash -n bin/metabot)"
+      "Bash(bash -n bin/metabot)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(metabot update:*)"
     ]
   }
 }
