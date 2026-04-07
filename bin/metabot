@@ -200,6 +200,28 @@ cmd_restart() { pm2 restart metabot; }
 cmd_logs()    { pm2 logs metabot "${@}"; }
 cmd_status()  { pm2 describe metabot; }
 
+show_help() {
+  echo -e "${BOLD}metabot${NC} - MetaBot management CLI"
+  echo ""
+  echo "  metabot update     Pull latest, rebuild, and restart"
+  echo "  metabot start      Start MetaBot with PM2"
+  echo "  metabot stop       Stop MetaBot"
+  echo "  metabot restart    Restart MetaBot"
+  echo "  metabot logs       View live logs (pass -n 100 etc.)"
+  echo "  metabot status     Show PM2 process status"
+  echo ""
+  if [[ -n "${METABOT_HOME:-}" ]]; then
+    echo "  METABOT_HOME=$METABOT_HOME  (set)"
+  else
+    echo "  METABOT_HOME=<repo-path>  (default: \$HOME/metabot, unset)"
+  fi
+  if [[ -n "${METABOT_ECOSYSTEM:-}" ]]; then
+    echo "  METABOT_ECOSYSTEM=$METABOT_ECOSYSTEM  (set)"
+  else
+    echo "  METABOT_ECOSYSTEM=  (unset)"
+  fi
+}
+
 case "${1:-help}" in
   update|up)    cmd_update ;;
   start)        cmd_start ;;
@@ -208,16 +230,6 @@ case "${1:-help}" in
   logs|log)     shift; cmd_logs "$@" ;;
   status|st)    cmd_status ;;
   *)
-    echo -e "${BOLD}metabot${NC} - MetaBot management CLI"
-    echo ""
-    echo "  metabot update     Pull latest, rebuild, and restart"
-    echo "  metabot start      Start MetaBot with PM2"
-    echo "  metabot stop       Stop MetaBot"
-    echo "  metabot restart    Restart MetaBot"
-    echo "  metabot logs       View live logs (pass -n 100 etc.)"
-    echo "  metabot status     Show PM2 process status"
-    echo ""
-    echo "  METABOT_HOME=$HOME/metabot (override if your clone lives elsewhere)"
-    echo "  METABOT_ECOSYSTEM=   (optional full path to ecosystem.config.cjs)"
+    show_help
     ;;
 esac
