@@ -2,71 +2,50 @@
 
 This directory contains shell completion scripts for the CLI tools.
 
+**Install layout:** `install.sh` / `metabot update` / `npm run update-cli` copy completions next to the binaries under **`~/.local/bin/completions/`** (bash: `mb`, `mm`, … from `*.bash`; zsh: `_mb`, `_mm`, …). `uninstall.sh` removes the same files. The installer **does not** edit `~/.bashrc` or `~/.zshrc`; copy the snippets from the end of `install.sh` output (or below) into your own config.
+
 ## Available Completions
 
 | Command      | Bash                     | Zsh                       |
 |--------------|--------------------------|---------------------------|
-| `mb`         | `mb.bash`                | `_mb`                     |
-| `mm`         | `mm.bash`                | `_mm`                     |
+| `mb`         | `mb.bash` → `~/.../mb`   | `_mb`                     |
+| `mm`         | `mm.bash` → `~/.../mm`   | `_mm`                     |
 | `metabot`    | `metabot.bash`           | `_metabot`                |
-| `doubao-tts` | `doubao-tts.bash`        | `_doubao-tts`             |
+| `doubao-tts` | `doubao-tts.bash`       | `_doubao-tts`             |
 
 ## Installation
 
+### Files on disk
+
+- **Full install / upgrade:** `install.sh`, `metabot update`, `mb … update`, or `npm run update-cli` refresh `~/.local/bin/completions/`.
+
 ### Bash
 
-**Temporary (current session only):**
-```bash
-source /path/to/metabot/bin/completions/mb.bash
-source /path/to/metabot/bin/completions/mm.bash
-source /path/to/metabot/bin/completions/metabot.bash
-source /path/to/metabot/bin/completions/doubao-tts.bash
-```
+Source every file in `~/.local/bin/completions` whose name does **not** start with `_` (zsh `_*` files are skipped):
 
-**Permanent (add to `~/.bashrc`):**
+**Manual (one session):**
+
 ```bash
-# For bash-completion package
-for cmd in mb mm metabot doubao-tts; do
-  [ -f "$HOME/metabot/bin/completions/${cmd}.bash" ] && source "$HOME/metabot/bin/completions/${cmd}.bash"
+for f in ~/.local/bin/completions/*; do
+  [ -f "$f" ] || continue
+  case "$(basename "$f")" in _*) continue ;; esac
+  # shellcheck source=/dev/null
+  . "$f"
 done
-```
-
-Or copy to system completion directory:
-```bash
-# System-wide (requires sudo)
-sudo cp bin/completions/*.bash /etc/bash_completion.d/
-
-# User-local (if bash-completion is installed)
-cp bin/completions/*.bash ~/.local/share/bash-completion/completions/
 ```
 
 ### Zsh
 
-**Temporary (current session only):**
+Add to `~/.zshrc` (put `fpath+=` **before** `compinit` if you use Oh My Zsh or similar):
+
 ```zsh
-# Add to fpath and load
-fpath+=(/path/to/metabot/bin/completions)
-autoload -U compinit && compinit
+fpath+=("$HOME/.local/bin/completions")
+autoload -Uz compinit && compinit
 ```
 
-**Permanent:**
+### Legacy path
 
-1. Copy completions to a directory in your fpath:
-```zsh
-mkdir -p ~/.zsh/completions
-cp /path/to/metabot/bin/completions/_* ~/.zsh/completions/
-```
-
-2. Add to `~/.zshrc` (if not already present):
-```zsh
-fpath+=(~/.zsh/completions)
-autoload -U compinit && compinit
-```
-
-Or use Oh My Zsh custom completions:
-```zsh
-cp bin/completions/_* ~/.oh-my-zsh/completions/
-```
+Older installs used `~/.local/share/bash-completion/completions/`. `uninstall.sh` removes `mb`, `mm`, `metabot`, `doubao-tts` there if still present.
 
 ## Completion Features
 

@@ -109,16 +109,40 @@ if command -v lsof &>/dev/null; then
 fi
 
 # ============================================================================
-# Phase 2: Remove CLI tools from ~/.local/bin
+# Phase 2: Remove CLI tools and completions from ~/.local/bin
 # ============================================================================
-step "Phase 2: Removing CLI tools"
+step "Phase 2: Removing CLI tools and completions"
 
-for cli in mm mb metabot fd; do
+for cli in mm mb metabot doubao-tts fd; do
   if [[ -f "$LOCAL_BIN/$cli" ]]; then
     rm -f "$LOCAL_BIN/$cli"
     success "Removed $LOCAL_BIN/$cli"
   fi
 done
+
+USER_COMPLETIONS="$HOME/.local/bin/completions"
+if [[ -d "$USER_COMPLETIONS" ]]; then
+  for f in mb mm metabot doubao-tts _mb _mm _metabot _doubao-tts; do
+    if [[ -f "$USER_COMPLETIONS/$f" ]]; then
+      rm -f "$USER_COMPLETIONS/$f"
+      success "Removed completion $USER_COMPLETIONS/$f"
+    fi
+  done
+  if [[ -d "$USER_COMPLETIONS" ]] && [[ -z "$(ls -A "$USER_COMPLETIONS" 2>/dev/null)" ]]; then
+    rmdir "$USER_COMPLETIONS" 2>/dev/null && info "Removed empty $USER_COMPLETIONS"
+  fi
+fi
+
+# Legacy completion location (older installs)
+LEGACY_BASH_COMP="$HOME/.local/share/bash-completion/completions"
+if [[ -d "$LEGACY_BASH_COMP" ]]; then
+  for f in mb mm metabot doubao-tts; do
+    if [[ -f "$LEGACY_BASH_COMP/$f" ]]; then
+      rm -f "$LEGACY_BASH_COMP/$f"
+      success "Removed legacy bash completion $LEGACY_BASH_COMP/$f"
+    fi
+  done
+fi
 
 # ============================================================================
 # Phase 3: Remove shell shortcuts from ~/.bash_aliases
@@ -270,7 +294,7 @@ echo -e "${NC}"
 echo ""
 echo -e "  ${BOLD}Removed:${NC}"
 echo "    - PM2 processes (metabot, metamemory)"
-echo "    - CLI tools (mm, mb, metabot)"
+echo "    - CLI tools (mm, mb, metabot, doubao-tts) and ~/.local/bin/completions"
 echo "    - Shell shortcuts from ~/.bash_aliases"
 echo "    - Claude skills (metaskill, metamemory, metabot, lark-cli skills)"
 echo "    - lark-cli config (~/.lark-cli)"

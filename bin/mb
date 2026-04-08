@@ -293,25 +293,21 @@ print(json.dumps(body))
       fi
     done
 
-    # Update shell completions
+    # Update shell completions (~/.local/bin/completions)
     if [[ -d "$METABOT_SRC/bin/completions" ]]; then
       echo "==> Updating shell completions..."
-      # Bash completions
-      BASH_COMPLETIONS="$HOME/.local/share/bash-completion/completions"
-      mkdir -p "$BASH_COMPLETIONS"
+      USER_COMPLETIONS="$HOME/.local/bin/completions"
+      mkdir -p "$USER_COMPLETIONS"
       for f in "$METABOT_SRC/bin/completions"/*.bash; do
         if [[ -f "$f" ]]; then
           name=$(basename "$f" .bash)
-          cp "$f" "$BASH_COMPLETIONS/$name"
+          cp "$f" "$USER_COMPLETIONS/$name"
           echo "    Updated bash completion: $name"
         fi
       done
-      # Zsh completions
-      ZSH_COMPLETIONS="$HOME/.zsh/completions"
-      mkdir -p "$ZSH_COMPLETIONS"
       for f in "$METABOT_SRC/bin/completions"/_*; do
         if [[ -f "$f" ]]; then
-          cp "$f" "$ZSH_COMPLETIONS/"
+          cp "$f" "$USER_COMPLETIONS/"
           echo "    Updated zsh completion: $(basename "$f")"
         fi
       done

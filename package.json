@@ -15,7 +15,7 @@
     "lint:fix": "eslint src/ tests/ --fix",
     "format": "prettier --write 'src/**/*.ts' 'tests/**/*.ts'",
     "format:check": "prettier --check 'src/**/*.ts' 'tests/**/*.ts'",
-    "update-cli": "for cli in mb mm metabot; do [ -f bin/$cli ] && cp bin/$cli ~/.local/bin/$cli && chmod +x ~/.local/bin/$cli && echo \"Updated: $cli\"; done && mkdir -p ~/.local/share/bash-completion/completions && for f in bin/completions/*.bash; do [ -f \"$f\" ] && cp \"$f\" ~/.local/share/bash-completion/completions/$(basename \"$f\" .bash) && echo \"Updated completion: $(basename \"$f\" .bash)\"; done"
+    "update-cli": "for cli in mb mm metabot; do [ -f bin/$cli ] && cp bin/$cli ~/.local/bin/$cli && chmod +x ~/.local/bin/$cli && echo \"Updated: $cli\"; done && mkdir -p ~/.local/bin/completions && for f in bin/completions/*.bash; do [ -f \"$f\" ] && cp \"$f\" ~/.local/bin/completions/$(basename \"$f\" .bash) && echo \"Updated completion: $(basename \"$f\" .bash)\"; done && for f in bin/completions/_*; do [ -f \"$f\" ] && cp \"$f\" ~/.local/bin/completions/ && echo \"Updated zsh: $(basename \"$f\")\"; done"
   },
   "dependencies": {
     "@anthropic-ai/claude-agent-sdk": "^0.2.92",

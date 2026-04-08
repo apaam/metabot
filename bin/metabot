@@ -70,40 +70,35 @@ cmd_update() {
   info "Building..."
   npm run build
 
-  # Update CLI tools in ~/.local/bin
+  # Update CLI tools + completions in ~/.local/bin (same layout as install.sh)
   LOCAL_BIN="$HOME/.local/bin"
-  if [[ -d "$LOCAL_BIN" ]]; then
-    info "Updating CLI tools..."
-    for cli in mb mm metabot; do
-      if [[ -f "$METABOT_HOME/bin/$cli" ]]; then
-        cp "$METABOT_HOME/bin/$cli" "$LOCAL_BIN/$cli"
-        chmod +x "$LOCAL_BIN/$cli"
-      fi
-    done
-    success "CLI tools updated"
-  fi
+  mkdir -p "$LOCAL_BIN"
+  info "Updating CLI tools..."
+  for cli in mb mm metabot; do
+    if [[ -f "$METABOT_HOME/bin/$cli" ]]; then
+      cp "$METABOT_HOME/bin/$cli" "$LOCAL_BIN/$cli"
+      chmod +x "$LOCAL_BIN/$cli"
+    fi
+  done
+  success "CLI tools updated → $LOCAL_BIN"
 
-  # Update shell completions
+  # Shell completions (~/.local/bin/completions)
   if [[ -d "$METABOT_HOME/bin/completions" ]]; then
     info "Updating shell completions..."
-    # Bash completions
-    BASH_COMPLETIONS="$HOME/.local/share/bash-completion/completions"
-    mkdir -p "$BASH_COMPLETIONS"
+    USER_COMPLETIONS="$HOME/.local/bin/completions"
+    mkdir -p "$USER_COMPLETIONS"
     for f in "$METABOT_HOME/bin/completions"/*.bash; do
       if [[ -f "$f" ]]; then
         name=$(basename "$f" .bash)
-        cp "$f" "$BASH_COMPLETIONS/$name"
+        cp "$f" "$USER_COMPLETIONS/$name"
       fi
     done
-    # Zsh completions
-    ZSH_COMPLETIONS="$HOME/.zsh/completions"
-    mkdir -p "$ZSH_COMPLETIONS"
     for f in "$METABOT_HOME/bin/completions"/_*; do
       if [[ -f "$f" ]]; then
-        cp "$f" "$ZSH_COMPLETIONS/"
+        cp "$f" "$USER_COMPLETIONS/"
       fi
     done
-    success "Shell completions updated"
+    success "Shell completions updated → $USER_COMPLETIONS"
   fi
 
   # Update skills in ~/.claude/skills

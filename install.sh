@@ -625,11 +625,10 @@ if [[ "$SETUP_LARK_CLI" == "true" ]]; then
       mkdir -p "$HOME/.npm-global"
       npm config set prefix "$HOME/.npm-global"
       npm install -g @larksuite/cli 2>/dev/null
-      # Ensure ~/.npm-global/bin is in PATH
+      # Ensure ~/.npm-global/bin is on PATH for this install session only
       if ! echo "$PATH" | grep -q "$HOME/.npm-global/bin"; then
         export PATH="$HOME/.npm-global/bin:$PATH"
-        echo 'export PATH="$HOME/.npm-global/bin:$PATH"' >> "$HOME/.bashrc"
-        info "Added ~/.npm-global/bin to PATH in ~/.bashrc"
+        info "Add ~/.npm-global/bin to PATH in your shell profile if lark-cli is missing in new terminals"
       fi
       success "lark-cli installed to ~/.npm-global/bin"
     fi
@@ -899,11 +898,7 @@ else
   info "mb() shortcut already exists, skipping"
 fi
 
-# Ensure ~/.bashrc sources ~/.bash_aliases (Ubuntu default, but not universal)
-if [[ -f "$HOME/.bashrc" ]] && ! grep -q 'bash_aliases' "$HOME/.bashrc"; then
-  echo -e '\n# Load bash aliases\nif [ -f ~/.bash_aliases ]; then\n    . ~/.bash_aliases\nfi' >> "$HOME/.bashrc"
-fi
-# Source it in the current shell so mm/mb work immediately after install
+# Source ~/.bash_aliases in this install session only (installer does not modify ~/.bashrc / ~/.zshrc)
 source "$BASH_ALIASES" 2>/dev/null || true
 
 # Install mm/mb/metabot as standalone executables in ~/.local/bin (no source needed)
@@ -918,60 +913,33 @@ for cli in $CLI_TOOLS; do
 done
 # Clean up legacy fd CLI if present
 [[ -f "$LOCAL_BIN/fd" ]] && rm -f "$LOCAL_BIN/fd"
-# Ensure ~/.local/bin is in PATH (most distros include it, but not all)
+# Ensure ~/.local/bin is on PATH for this install session only
 if ! echo "$PATH" | grep -q "$LOCAL_BIN"; then
-  echo "export PATH=\"$LOCAL_BIN:\$PATH\"" >> "$HOME/.bashrc"
-  info "Added ~/.local/bin to PATH in ~/.bashrc"
+  export PATH="$LOCAL_BIN:$PATH"
+  info "Add ~/.local/bin to PATH in your shell profile to use mm/mb/metabot in new terminals"
 fi
 success "mm/mb/metabot CLI tools installed to $LOCAL_BIN"
 
-# Install shell completions
+# Install shell completions (same prefix as CLI: ~/.local/bin/completions)
 COMPLETIONS_DIR="$METABOT_HOME/bin/completions"
+USER_COMPLETIONS="$HOME/.local/bin/completions"
 if [[ -d "$COMPLETIONS_DIR" ]]; then
-  info "Installing shell completions..."
+  info "Installing shell completions to $USER_COMPLETIONS..."
 
-  # Bash completions
-  BASH_COMPLETIONS="$HOME/.local/share/bash-completion/completions"
-  mkdir -p "$BASH_COMPLETIONS"
+  mkdir -p "$USER_COMPLETIONS"
   for comp in mb mm metabot doubao-tts; do
     if [[ -f "$COMPLETIONS_DIR/${comp}.bash" ]]; then
-      cp "$COMPLETIONS_DIR/${comp}.bash" "$BASH_COMPLETIONS/${comp}"
+      cp "$COMPLETIONS_DIR/${comp}.bash" "$USER_COMPLETIONS/${comp}"
       success "Bash completion for $comp installed"
     fi
   done
-
-  # Zsh completions
-  ZSH_COMPLETIONS="$HOME/.zsh/completions"
-  mkdir -p "$ZSH_COMPLETIONS"
   for comp in _mb _mm _metabot _doubao-tts; do
     if [[ -f "$COMPLETIONS_DIR/${comp}" ]]; then
-      cp "$COMPLETIONS_DIR/${comp}" "$ZSH_COMPLETIONS/${comp}"
+      cp "$COMPLETIONS_DIR/${comp}" "$USER_COMPLETIONS/${comp}"
       success "Zsh completion for ${comp#_} installed"
     fi
   done
-
-  # Add completion dirs to shell configs if needed
-  if [[ -f "$HOME/.bashrc" ]] && ! grep -q 'bash-completion/completions' "$HOME/.bashrc"; then
-    if [[ -d "/usr/share/bash-completion" ]] || [[ -d "/etc/bash_completion.d" ]]; then
-      echo '' >> "$HOME/.bashrc"
-      echo '# Enable bash completions for locally installed tools' >> "$HOME/.bashrc"
-      echo 'if [ -d ~/.local/share/bash-completion/completions ]; then' >> "$HOME/.bashrc"
-      echo '    for f in ~/.local/share/bash-completion/completions/*; do' >> "$HOME/.bashrc"
-      echo '        [ -f "$f" ] && source "$f"' >> "$HOME/.bashrc"
-      echo '    done' >> "$HOME/.bashrc"
-      echo 'fi' >> "$HOME/.bashrc"
-      info "Added bash completion loader to ~/.bashrc"
-    fi
-  fi
-
-  if [[ -f "$HOME/.zshrc" ]]; then
-    if ! grep -q 'fpath.*zsh/completions' "$HOME/.zshrc"; then
-      sed_i '/^source/i \
-# Add custom completions\
-fpath+=(~/.zsh/completions)' "$HOME/.zshrc"
-      info "Added zsh completion path to ~/.zshrc"
-    fi
-  fi
+  info "Completions copied to $USER_COMPLETIONS — add the snippets in the summary below to your shell config"
 fi
 
 # ============================================================================
@@ -1060,6 +1028,30 @@ fi
 if [[ "$METAMEMORY_INSTALLED" == "true" ]]; then
   echo -e "  ${BOLD}MetaMemory:${NC}     http://localhost:8100"
 fi
+echo ""
+echo -e "  ${BOLD}Shell config:${NC} the installer does not edit ~/.bashrc or ~/.zshrc. Add the following yourself:"
+echo ""
+echo -e "  ${BOLD}1) PATH${NC}"
+echo "    export PATH=\"\$HOME/.local/bin:\$PATH\""
+echo "    export PATH=\"\$HOME/.npm-global/bin:\$PATH\"   # optional: user-level npm -g (e.g. lark-cli)"
+echo ""
+echo -e "  ${BOLD}2) Bash — tab completions${NC}"
+echo "    if [ -d \"\$HOME/.local/bin/completions\" ]; then"
+echo "      for _mbc in \"\$HOME/.local/bin/completions\"/*; do"
+echo "        [ -f \"\$_mbc\" ] || continue"
+echo "        case \"\$(basename \"\$_mbc\")\" in _*) continue ;; esac"
+echo "        # shellcheck source=/dev/null"
+echo "        . \"\$_mbc\""
+echo "      done"
+echo "      unset _mbc"
+echo "    fi"
+echo ""
+echo -e "  ${BOLD}3) Zsh — tab completions${NC} (put fpath before compinit if you use a framework)"
+echo "    fpath+=(\"\$HOME/.local/bin/completions\")"
+echo "    autoload -Uz compinit && compinit   # skip if you already run compinit later in this file"
+echo ""
+echo -e "  ${BOLD}4) mm()/mb() shortcuts${NC} (optional — already written to ~/.bash_aliases)"
+echo "    [ -f ~/.bash_aliases ] && . ~/.bash_aliases"
 echo ""
 echo -e "  ${BOLD}Commands:${NC}"
 echo "    pm2 logs metabot          # View MetaBot logs"
